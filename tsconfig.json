@@ -15,3 +15,11 @@
 
 
 }
+// npm install better-auth
+// npx @better-auth/cli generate
+
+//  npm i drizzle-orm pg 
+//  npm i -D drizzle-kit @types/pg
+
+//npx drizzle-kit generate
+// npx drizzle-kit migrate
