@@ -11,7 +11,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
   } else {
     context.locals.user = null
     context.locals.session = null
+
+    if (context.url.pathname.startsWith('/app')) {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: '/login',
+        },
+      })
+    }
+
+
   }
+
+
 
   return next()
 

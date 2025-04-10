@@ -15,6 +15,20 @@
       "when": 1744152728459,
       "tag": "0001_daffy_brood",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1744302013211,
+      "tag": "0002_giant_mordo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1744302971420,
+      "tag": "0003_material_outlaw_kid",
+      "breakpoints": true
     }
   ]
 }
