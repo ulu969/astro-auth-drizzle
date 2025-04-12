@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/common.astro';
-import { auth } from '@src/auth';
+import { auth, processTurnstile } from '@src/auth';
 
 let error_message = '';
 if (Astro.request.method === 'POST') {
@@ -8,31 +8,38 @@ if (Astro.request.method === 'POST') {
 
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
+  const is_valid_turnstile = await processTurnstile(
+    formData.get('cf-turnstile-response')?.toString() || ''
+  );
 
-  try {
-    const { headers, response } = await auth.api.signInEmail({
-      returnHeaders: true,
-      body: {
-        email,
-        password,
-      },
-    });
+  if (!is_valid_turnstile) {
+    error_message = 'Request not authorized';
+  } else {
+    try {
+      const { headers, response } = await auth.api.signInEmail({
+        returnHeaders: true,
+        body: {
+          email,
+          password,
+        },
+      });
 
-    const cookies = headers.get('set-cookie') as string;
+      const cookies = headers.get('set-cookie') as string;
 
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: '/app',
-        'Set-Cookie': cookies,
-      },
-    });
-  } catch (error: any) {
-    console.error('Error:', error);
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: '/app',
+          'Set-Cookie': cookies,
+        },
+      });
+    } catch (error: any) {
+      console.error('Error:', error);
 
-    if (error.body.code) {
-      error_message = error.body.message;
-      console.log(error_message);
+      if (error.body.code) {
+        error_message = error.body.message;
+        console.log(error_message);
+      }
     }
   }
 }
@@ -43,6 +50,11 @@ if (Astro.locals.user) {
 ---
 
 <Layout title="Login">
+  <script
+    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+    async
+    defer></script>
+
   <form
     class="mx-auto max-w-md space-y-6 bg-white py-8 px-10
   rounded-lg shadow"

@@ -3,6 +3,8 @@ import Layout from '@layouts/app.astro';
 
 import { fetchTasks, fetchCategories, addTask } from '@/src/data';
 
+const userId = Astro.locals.user?.id as string;
+
 if (Astro.request.method === 'POST') {
   const formData = await Astro.request.formData();
   const title = formData.get('new-task-title') as string;
@@ -10,12 +12,12 @@ if (Astro.request.method === 'POST') {
   console.log(title, categoryId);
 
   if (title && categoryId) {
-    await addTask(title, categoryId);
+    await addTask(title, categoryId, userId);
   }
 }
 
-const tasks = await fetchTasks();
-const categories = await fetchCategories();
+const tasks = await fetchTasks(userId);
+const categories = await fetchCategories(userId);
 ---
 
 <Layout title="Tasks">

@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/common.astro';
-import { auth } from '@src/auth';
+import { auth, processTurnstile } from '@src/auth';
 
 let error_message = '';
 if (Astro.request.method === 'POST') {
@@ -16,30 +16,37 @@ if (Astro.request.method === 'POST') {
     console.log('Passwords do not match');
     error_message = 'Passwords do not match';
   }
+  const is_valid_turnstile = await processTurnstile(
+    formData.get('cf-turnstile-response')?.toString() || ''
+  );
 
-  try {
-    const { headers, response } = await auth.api.signUpEmail({
-      returnHeaders: true,
-      body: {
-        name: '',
-        email,
-        password,
-      },
-    });
+  if (!is_valid_turnstile) {
+    error_message = 'Request not authorized';
+  } else {
+    try {
+      const { headers, response } = await auth.api.signUpEmail({
+        returnHeaders: true,
+        body: {
+          name: '',
+          email,
+          password,
+        },
+      });
 
-    const cookies = headers.get('set-cookie') as string;
+      const cookies = headers.get('set-cookie') as string;
 
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: '/app',
-        'Set-Cookie': cookies,
-      },
-    });
-  } catch (error: any) {
-    if (error.body.code) {
-      error_message = error.body.message;
-      console.log(error_message);
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: '/app',
+          'Set-Cookie': cookies,
+        },
+      });
+    } catch (error: any) {
+      if (error.body.code) {
+        error_message = error.body.message;
+        console.log(error_message);
+      }
     }
   }
 }
@@ -49,6 +56,10 @@ if (Astro.locals.user) {
 ---
 
 <Layout title="Signup">
+  <script
+    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+    async
+    defer></script>;
   <form
     class="mx-auto max-w-md space-y-6 bg-white py-8 px-10 rounded-lg shadow"
     method="POST"
@@ -104,6 +115,8 @@ if (Astro.locals.user) {
           focus:border-blue-500 text-sm"
         />
       </div>
+    </div>
+    <div class="cf-turnstile" data-sitekey={import.meta.env.TURNSTILE_SITE_KEY}>
     </div>
 
     <div>

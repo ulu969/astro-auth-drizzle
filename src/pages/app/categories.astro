@@ -3,13 +3,15 @@ import Layout from '@layouts/app.astro';
 
 import { fetchCategories, addCategory } from '@/src/data';
 
-const categories = await fetchCategories();
+const userId = Astro.locals.user?.id as string;
+
+const categories = await fetchCategories(userId);
 
 if (Astro.request.method === 'POST') {
   const formData = await Astro.request.formData();
   const name = formData.get('new-category-name') as string;
   if (name) {
-    await addCategory(name);
+    await addCategory(name, userId);
   }
 
   console.log(name);
